@@ -26,4 +26,5 @@ gen
 
 migrations/
 config/
+_var/
 .env
