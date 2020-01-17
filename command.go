@@ -42,8 +42,8 @@ func rootCmd() *cobra.Command {
 			return cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&dbFileName, "config", "c", "", "database config name or absolute path")
-	cmd.PersistentFlags().StringVarP(&migrationDir, "dir", "d", getEnv("GOMIG_DIR", "migrations"), "Sets the migration location directory")
+	cmd.PersistentFlags().StringVarP(&dbFileName, "config", "c", "", "config file path")
+	cmd.PersistentFlags().StringVarP(&migrationDir, "dir", "d", getEnv("GOMIG_DIR", "migrations"), "directory with migrations")
 	return cmd
 }
 
@@ -70,7 +70,7 @@ func upCmd(ctx context.Context) *cobra.Command {
 		},
 		SilenceErrors: true,
 	}
-	cmd.Flags().StringVarP(&base, "base", "b", "", "Sets database config name or absolute path")
+	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
 	return cmd
 }
 
@@ -119,7 +119,7 @@ func applyCmd(ctx context.Context) *cobra.Command {
 		},
 		SilenceErrors: true,
 	}
-	cmd.Flags().StringVarP(&base, "base", "b", "", "Sets database config name or absolute path")
+	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
 	cmd.Flags().StringVarP(&file, "file", "f", "", "migration file path")
 	_ = cmd.MarkFlagRequired("base")
 	_ = cmd.MarkFlagRequired("file")
