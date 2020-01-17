@@ -8,11 +8,11 @@ import (
 
 func main() {
 	ctx := util.RegisterCloser()
-	cmd := rootCmd(ctx)
-
+	cmd := rootCmd()
 	cmd.AddCommand(
 		upCmd(ctx),
 		downCmd(ctx),
+		applyCmd(ctx),
 	)
 	if err := cmd.Execute(); err != nil {
 		log.Fatalln(err)
