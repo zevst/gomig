@@ -50,8 +50,8 @@ func rootCmd() *cobra.Command {
 func upCmd(ctx context.Context) *cobra.Command {
 	var base string
 	cmd := &cobra.Command{
-		Use:  "up",
-		Long: "Up all migrations",
+		Use:   "up",
+		Short: "Apply all up migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(config.Databases) == 0 {
 				return ErrDatabaseNotConfigured
@@ -77,8 +77,8 @@ func upCmd(ctx context.Context) *cobra.Command {
 func downCmd(ctx context.Context) *cobra.Command {
 	var base string
 	cmd := &cobra.Command{
-		Use:  "down",
-		Long: "Down all migrations",
+		Use:   "down",
+		Short: "Apply all down migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(config.Databases) == 0 {
 				return ErrDatabaseNotConfigured
@@ -104,8 +104,8 @@ func downCmd(ctx context.Context) *cobra.Command {
 func applyCmd(ctx context.Context) *cobra.Command {
 	var base, file string
 	cmd := &cobra.Command{
-		Use:  "apply",
-		Long: "Apply migration",
+		Use:   "apply",
+		Short: "Apply migration from file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(config.Databases) == 0 {
 				return ErrDatabaseNotConfigured
