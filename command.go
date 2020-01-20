@@ -125,3 +125,21 @@ func applyCmd(ctx context.Context) *cobra.Command {
 	_ = cmd.MarkFlagRequired("file")
 	return cmd
 }
+
+func createCmd() *cobra.Command {
+	var base, name, out string
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create migration file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return create(base, name, out)
+		},
+		SilenceErrors: true,
+	}
+	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
+	cmd.Flags().StringVarP(&name, "name", "n", "", "migration name")
+	cmd.Flags().StringVarP(&out, "out", "o", getEnv("GOMIG_DIR", "migrations"), "out directory")
+	_ = cmd.MarkFlagRequired("base")
+	_ = cmd.MarkFlagRequired("name")
+	return cmd
+}

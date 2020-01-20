@@ -5,8 +5,6 @@
 go get -u github.com/zevst/gomig
 ```
 
-
-
 ##### How to use it?
 ```shell script
 make build
@@ -18,8 +16,8 @@ bin/gomig --help
 .
 ├── migrations
 │   └── database
-│       ├── filename.down.sql
-│       └── filename.up.sql
+│       ├── timestamp_description.down.sql
+│       └── timestamp_description.up.sql
 ```
 
 ###### ENVs

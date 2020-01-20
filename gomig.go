@@ -6,8 +6,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"go.uber.org/multierr"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const upSuffix = ".up.sql"
@@ -152,4 +154,26 @@ func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fn s
 		}
 	}
 	return tx.Commit().Error
+}
+
+func create(base, name, out string) error {
+	return createMigration(fmt.Sprintf("%s/%s/%d_%s", out, base, time.Now().Unix(), name))
+}
+
+func createMigration(name string) error {
+	up := fmt.Sprintf("%s%s", name, upSuffix)
+	down := fmt.Sprintf("%s%s", name, downSuffix)
+	if err := createFile(up); err != nil {
+		return err
+	}
+	return createFile(down)
+}
+
+func createFile(name string) error {
+	file, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString("-- ")
+	return err
 }

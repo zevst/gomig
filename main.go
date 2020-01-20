@@ -13,6 +13,7 @@ func main() {
 		upCmd(ctx),
 		downCmd(ctx),
 		applyCmd(ctx),
+		createCmd(),
 	)
 	if err := cmd.Execute(); err != nil {
 		log.Fatalln(err)
