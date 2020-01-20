@@ -4,8 +4,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
-	"gomig/driver"
-	"gomig/errors"
+	"github.com/zevst/gomig/driver"
+	"github.com/zevst/gomig/errors"
 	"os"
 	"strings"
 )

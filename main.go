@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"gomig/util"
+	"github.com/zevst/gomig/util"
 	"log"
 )
 

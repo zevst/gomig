@@ -1,4 +1,4 @@
-module gomig
+module github.com/zevst/gomig
 
 go 1.13
 

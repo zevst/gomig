@@ -1,5 +1,12 @@
 # `Go`lang `Mig`ration
 
+##### Install
+```shell script
+go get -u github.com/zevst/gomig
+```
+
+
+
 ##### How to use it?
 ```shell script
 make build
