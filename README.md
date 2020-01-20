@@ -21,3 +21,11 @@ bin/gomig --help
 │       ├── filename.down.sql
 │       └── filename.up.sql
 ```
+
+###### ENVs
+* **GOMIG_CONFIG_TYPE**: type of config
+* **GOMIG_CONFIG_PATH**: directory with configurations
+* **GOMIG_CONFIG_NAME**: main config
+* **GOMIG_CONFIG_FILE_PATH**: environment config
+* **GOMIG_DIR**: directory with migrations
+* **GOMIG_MIGRATION_TABLE_PREFIX**: migrations table name prefix

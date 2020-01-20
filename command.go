@@ -22,7 +22,7 @@ func (m Action) is(value string) bool {
 }
 
 func rootCmd() *cobra.Command {
-	var dbFileName string
+	var configFilePath string
 	cmd := &cobra.Command{
 		Use:  "Gomig",
 		Long: "Gomig is a migration tool",
@@ -30,8 +30,8 @@ func rootCmd() *cobra.Command {
 			if err := viper.ReadInConfig(); err != nil {
 				return err
 			}
-			if len(dbFileName) > 0 {
-				viper.SetConfigFile(dbFileName)
+			if len(configFilePath) > 0 {
+				viper.SetConfigFile(configFilePath)
 				if err := viper.MergeInConfig(); err != nil {
 					return err
 				}
@@ -42,7 +42,7 @@ func rootCmd() *cobra.Command {
 			return cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&dbFileName, "config", "c", "", "config file path")
+	cmd.PersistentFlags().StringVarP(&configFilePath, "config", "c", getEnv("GOMIG_CONFIG_FILE_PATH", ""), "config file path")
 	cmd.PersistentFlags().StringVarP(&migrationDir, "dir", "d", getEnv("GOMIG_DIR", "migrations"), "directory with migrations")
 	return cmd
 }

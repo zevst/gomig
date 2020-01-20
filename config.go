@@ -51,7 +51,6 @@ func (d *database) Connect() (conn *gorm.DB, err error) {
 		conn.Set("gorm:table_options", strings.Join(d.TableOptions, " "))
 	}
 	return conn, conn.AutoMigrate(&Entity{}).Error
-
 }
 
 type Config struct {
