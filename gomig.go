@@ -6,8 +6,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"go.uber.org/multierr"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -15,7 +17,23 @@ import (
 const upSuffix = ".up.sql"
 const downSuffix = ".down.sql"
 
-func getUpFiles(conn *gorm.DB) (map[string]string, error) {
+type matchedFiles []string
+
+func (m matchedFiles) Len() int {
+	return len(m)
+}
+
+func (m matchedFiles) Less(i, j int) bool {
+	first := strings.Split(strings.Split(m[i], "_")[0], "/")
+	second := strings.Split(strings.Split(m[j], "_")[0], "/")
+	return first[len(first)-1] < second[len(second)-1]
+}
+
+func (m matchedFiles) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
+
+func getUpFiles(conn *gorm.DB) ([]string, error) {
 	pattern := fmt.Sprintf("%s/%s/*%s", migrationDir, conn.Dialect().CurrentDatabase(), upSuffix)
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
@@ -41,10 +59,15 @@ func getUpFiles(conn *gorm.DB) (map[string]string, error) {
 	if len(files) == 0 {
 		return nil, ErrNothing
 	}
-	return files, nil
+	var out []string
+	for _, v := range files {
+		out = append(out, v)
+	}
+	sort.Sort(matchedFiles(out))
+	return out, nil
 }
 
-func getDownFiles(conn *gorm.DB) (map[string]string, error) {
+func getDownFiles(conn *gorm.DB) ([]string, error) {
 	var migrations []Entity
 	if err := conn.Find(&migrations).Error; err != nil {
 		return nil, err
@@ -68,11 +91,17 @@ func getDownFiles(conn *gorm.DB) (map[string]string, error) {
 	for _, migration := range migrations {
 		fp, ok := files[migration.Value]
 		if !ok {
-			err = multierr.Append(err, fmt.Errorf("file: %s%s", migration.Value, downSuffix))
+			err = multierr.Append(err, fmt.Errorf("cannot find file: %s%s", migration.Value, downSuffix))
 		}
 		out[migration.Value] = fp
 	}
-	return out, err
+
+	var res []string
+	for _, v := range files {
+		res = append(res, v)
+	}
+	sort.Sort(sort.Reverse(matchedFiles(res)))
+	return res, err
 }
 
 func up(ctx context.Context, db *database) error {
@@ -105,29 +134,26 @@ func apply(ctx context.Context, db *database, file string) error {
 		return err
 	}
 	_, fn := filepath.Split(file)
-	var filename string
 	var action Action
 	if strings.HasSuffix(fn, upSuffix) {
 		action = UP
-		filename = strings.TrimSuffix(fn, upSuffix)
 	} else if strings.HasSuffix(fn, downSuffix) {
 		action = DOWN
-		filename = strings.TrimSuffix(fn, downSuffix)
 	} else {
 		return ErrUndefinedMigrationType
 	}
 
-	return applyMigration(ctx, conn, action, filename, file)
+	return applyMigration(ctx, conn, action, file)
 }
 
-func execMigrations(ctx context.Context, conn *gorm.DB, action Action, files map[string]string) (err error) {
-	for fn, fp := range files {
-		err = multierr.Append(err, applyMigration(ctx, conn, action, fn, fp))
+func execMigrations(ctx context.Context, conn *gorm.DB, action Action, files []string) (err error) {
+	for _, fp := range files {
+		err = multierr.Append(err, applyMigration(ctx, conn, action, fp))
 	}
 	return err
 }
 
-func applyMigration(ctx context.Context, conn *gorm.DB, action Action, fn string, fp string) error {
+func applyMigration(ctx context.Context, conn *gorm.DB, action Action, fp string) error {
 	b, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return err
@@ -136,19 +162,25 @@ func applyMigration(ctx context.Context, conn *gorm.DB, action Action, fn string
 	if err != nil {
 		return err
 	}
-	return updateMigrationList(ctx, conn, action, fn)
+	return updateMigrationList(ctx, conn, action, fp)
 }
 
-func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fn string) error {
+func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fp string) error {
 	tx := conn.BeginTx(ctx, nil)
 	switch action {
 	case UP:
-		if err := tx.Create(&Entity{Value: fn}).Error; err != nil {
+		_, fn := filepath.Split(fp)
+		filename := strings.TrimSuffix(fn, upSuffix)
+		log.Printf("Migration applied successfully: %s", filename)
+		if err := tx.Create(&Entity{Value: filename}).Error; err != nil {
 			err = multierr.Append(err, tx.Rollback().Error)
 			return err
 		}
 	case DOWN:
-		if err := tx.Delete(&Entity{Value: fn}).Error; err != nil {
+		_, fn := filepath.Split(fp)
+		filename := strings.TrimSuffix(fn, downSuffix)
+		log.Printf("Migration applied successfully: %s", filename)
+		if err := tx.Delete(&Entity{Value: filename}).Error; err != nil {
 			err = multierr.Append(err, tx.Rollback().Error)
 			return err
 		}
