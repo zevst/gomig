@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zevst/zlog"
 	"go.uber.org/multierr"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -36,10 +38,19 @@ func rootCmd() *cobra.Command {
 					return err
 				}
 			}
-			return viper.Unmarshal(&config)
+			if err := viper.Unmarshal(&config); err != nil {
+				return err
+			}
+			if config.Loggers != nil {
+				zlog.Start(config.Loggers.Core(), zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zap.DPanicLevel))
+			}
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
+		},
+		PersistentPostRun: func(*cobra.Command, []string) {
+			zlog.End()
 		},
 	}
 	cmd.PersistentFlags().StringVarP(&configFilePath, "config", "c", getEnv("GOMIG_CONFIG_FILE_PATH", ""), "config file path")

@@ -2,8 +2,9 @@ package util
 
 import (
 	"context"
+	"github.com/zevst/zlog"
+	"go.uber.org/zap"
 	"io"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,7 +20,7 @@ func RegisterCloser() context.Context {
 
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
-		log.Println(err)
+		zlog.Error("Closer", zap.Error(err))
 	}
 }
 

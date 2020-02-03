@@ -3,7 +3,8 @@ package main
 import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/zevst/gomig/util"
-	"log"
+	"github.com/zevst/zlog"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -16,6 +17,6 @@ func main() {
 		createCmd(),
 	)
 	if err := cmd.Execute(); err != nil {
-		log.Fatalln(err)
+		zlog.Fatal("Main", zap.Error(err))
 	}
 }

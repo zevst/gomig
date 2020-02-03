@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/zevst/zlog"
 	"go.uber.org/multierr"
+	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -57,7 +58,7 @@ func getUpFiles(conn *gorm.DB) ([]string, error) {
 		delete(files, migration.Value)
 	}
 	if len(files) == 0 {
-		return nil, ErrNothing
+		return nil, nil
 	}
 	var out []string
 	for _, v := range files {
@@ -79,7 +80,7 @@ func getDownFiles(conn *gorm.DB) ([]string, error) {
 	} else if len(matches) == 0 {
 		return nil, ErrFilesNotFound
 	} else if len(migrations) == 0 {
-		return nil, ErrNothing
+		return nil, nil
 	}
 	files := make(map[string]string)
 	for _, fp := range matches {
@@ -112,6 +113,9 @@ func up(ctx context.Context, db *database) error {
 	files, err := getUpFiles(conn)
 	if err != nil {
 		return err
+	} else if len(files) == 0 {
+		zlog.Info("No migrations to apply")
+		return nil
 	}
 	return execMigrations(ctx, conn, UP, files)
 }
@@ -124,6 +128,9 @@ func down(ctx context.Context, db *database) error {
 	files, err := getDownFiles(conn)
 	if err != nil {
 		return err
+	} else if len(files) == 0 {
+		zlog.Info("No migrations to apply")
+		return nil
 	}
 	return execMigrations(ctx, conn, DOWN, files)
 }
@@ -171,7 +178,7 @@ func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fp s
 	case UP:
 		_, fn := filepath.Split(fp)
 		filename := strings.TrimSuffix(fn, upSuffix)
-		log.Printf("Migration applied successfully: %s", filename)
+		zlog.Info("Migration applied successfully", zap.String("filename", filename))
 		if err := tx.Create(&Entity{Value: filename}).Error; err != nil {
 			err = multierr.Append(err, tx.Rollback().Error)
 			return err
@@ -179,7 +186,7 @@ func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fp s
 	case DOWN:
 		_, fn := filepath.Split(fp)
 		filename := strings.TrimSuffix(fn, downSuffix)
-		log.Printf("Migration applied successfully: %s", filename)
+		zlog.Info("Migration applied successfully", zap.String("filename", filename))
 		if err := tx.Delete(&Entity{Value: filename}).Error; err != nil {
 			err = multierr.Append(err, tx.Rollback().Error)
 			return err

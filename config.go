@@ -6,12 +6,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/zevst/gomig/driver"
 	"github.com/zevst/gomig/errors"
+	"github.com/zevst/zlog"
 	"os"
 	"strings"
 )
 
 var (
-	ErrNothing                = errors.New("Nothing to do")
 	ErrDatabaseNotFound       = errors.New("Database not found")
 	ErrDatabaseNotConfigured  = errors.New("Database not configured")
 	ErrDialectNotFound        = errors.New("Database dialect not found. You can add your own dialect using gorm.RegisterDialect")
@@ -55,6 +55,7 @@ func (d *database) Connect() (conn *gorm.DB, err error) {
 
 type Config struct {
 	Databases map[string]*database `mapstructure:"db"`
+	Loggers   zlog.MultiLogger     `mapstructure:"loggers"`
 }
 
 var config *Config
