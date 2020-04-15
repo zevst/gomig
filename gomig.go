@@ -187,7 +187,8 @@ func updateMigrationList(ctx context.Context, conn *gorm.DB, action Action, fp s
 		_, fn := filepath.Split(fp)
 		filename := strings.TrimSuffix(fn, downSuffix)
 		zlog.Info("Migration applied successfully", zap.String("filename", filename))
-		if err := tx.Delete(&Entity{Value: filename}).Error; err != nil {
+		where := map[string]interface{}{"value": filename}
+		if err := tx.Delete(&Entity{}, where).Error; err != nil {
 			err = multierr.Append(err, tx.Rollback().Error)
 			return err
 		}
