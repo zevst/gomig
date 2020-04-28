@@ -20,7 +20,11 @@ const (
 var migrationDir string
 
 func (m Action) is(value string) bool {
-	return string(m) == strings.ToLower(value)
+	return m.String() == strings.ToLower(value)
+}
+
+func (m Action) String() string {
+	return string(m)
 }
 
 func rootCmd() *cobra.Command {
@@ -49,9 +53,6 @@ func rootCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
-		PersistentPostRun: func(*cobra.Command, []string) {
-			zlog.End()
-		},
 	}
 	cmd.PersistentFlags().StringVarP(&configFilePath, "config", "c", getEnv("GOMIG_CONFIG_FILE_PATH", ""), "config file path")
 	cmd.PersistentFlags().StringVarP(&migrationDir, "dir", "d", getEnv("GOMIG_DIR", "migrations"), "directory with migrations")
@@ -79,6 +80,7 @@ func upCmd(ctx context.Context) *cobra.Command {
 			}
 			return err
 		},
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
@@ -106,6 +108,7 @@ func downCmd(ctx context.Context) *cobra.Command {
 			}
 			return err
 		},
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
@@ -128,6 +131,7 @@ func applyCmd(ctx context.Context) *cobra.Command {
 			}
 			return ErrDatabaseNotFound
 		},
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")
@@ -145,6 +149,7 @@ func createCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return create(base, name, out)
 		},
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 	cmd.Flags().StringVarP(&base, "base", "b", "", "database name in the config")

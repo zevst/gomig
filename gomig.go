@@ -98,7 +98,7 @@ func getDownFiles(conn *gorm.DB) ([]string, error) {
 	}
 
 	var res []string
-	for _, v := range files {
+	for _, v := range out {
 		res = append(res, v)
 	}
 	sort.Sort(sort.Reverse(matchedFiles(res)))
@@ -153,11 +153,13 @@ func apply(ctx context.Context, db *database, file string) error {
 	return applyMigration(ctx, conn, action, file)
 }
 
-func execMigrations(ctx context.Context, conn *gorm.DB, action Action, files []string) (err error) {
+func execMigrations(ctx context.Context, conn *gorm.DB, action Action, files []string) error {
 	for _, fp := range files {
-		err = multierr.Append(err, applyMigration(ctx, conn, action, fp))
+		if err := applyMigration(ctx, conn, action, fp); err != nil {
+			return err
+		}
 	}
-	return err
+	return nil
 }
 
 func applyMigration(ctx context.Context, conn *gorm.DB, action Action, fp string) error {
@@ -167,6 +169,7 @@ func applyMigration(ctx context.Context, conn *gorm.DB, action Action, fp string
 	}
 	_, err = conn.DB().ExecContext(ctx, string(b))
 	if err != nil {
+		zlog.Error(action.String(), zap.String("filename", fp), zap.Error(err))
 		return err
 	}
 	return updateMigrationList(ctx, conn, action, fp)

@@ -16,7 +16,6 @@ func main() {
 		applyCmd(ctx),
 		createCmd(),
 	)
-	if err := cmd.Execute(); err != nil {
-		zlog.Fatal("Main", zap.Error(err))
-	}
+	zlog.Info("End migration", zap.Error(cmd.Execute()))
+	zlog.End()
 }
